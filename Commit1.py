@@ -12,7 +12,7 @@ sprite_pulando = pygame.transform.scale(pygame.image.load("mario_jumping.png"), 
 BACKGROUND = pygame.image.load("background.png")
 plataforma = pygame.image.load("plataforma.png").convert_alpha()
 
-maxPlat = 5
+maxPlat = 4
 
 class Jef():
 
