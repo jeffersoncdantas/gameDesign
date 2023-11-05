@@ -1,5 +1,5 @@
-import pygame  # Biblioteca Pygame para criar o jogo
-import random  # Biblioteca Random para geração de números aleatórios
+import pygame 
+import random 
 import sys
 
 pygame.init()  # Inicializa o Pygame
@@ -15,8 +15,6 @@ SCREEN_HEIGHT = 600  # Altura da janela
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))  # Cria a janela com as dimensões especificadas
 pygame.display.set_caption('Tsunami Jumping')  # Define o título da janela
 
-SCROLL_SPEED = 0.5 # Velocidade da rolagem da tela
-screen_movement = False # Rolagem da tela
 SCROLL_THRESH = 200  # Limitador de rolagem da tela
 GRAVITY = 1  # Gravidade aplicada ao personagem
 MAX_PLATFORMS = 10  # Número máximo de plataformas na tela
@@ -26,7 +24,6 @@ game_over = False  # Indica se o jogo acabou
 score = 0  # Pontuação do jogador
 fade_counter = 0  # Contador para efeito de tela de game over
 high_score = 0 # Pontuação maxima
-
 
 # Define cores
 WHITE = (255, 255, 255)  # Cor branca
@@ -42,7 +39,6 @@ sprite_pulando = pygame.image.load("mario_jumping.png") #  Carrega a imagem do p
 bg_image1 = pygame.image.load('bg1.png').convert_alpha()  # Carrega a imagem de fundo 1
 bg_image = pygame.image.load('bg.png').convert_alpha()  # Carrega a imagem de fundo 
 platform_image = pygame.image.load('plataforma.png').convert_alpha()  # Carrega a imagem das plataformas
-wave_image = pygame.image.load("onda.png").convert_alpha() 
 
 # Função para desenhar texto na tela
 def draw_text(text, font, text_col, x, y):
@@ -159,33 +155,30 @@ class Platform(pygame.sprite.Sprite):
             self.kill()  # Remove a plataforma do grupo
 
 # Instância do jogador
-jef = Jef(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 200)  # Cria uma instância do jogador no centro da tela
+jef = Jef(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 150)  # Cria uma instância do jogador no centro da tela
 
 # Cria grupos de sprites para plataformas e inimigos
 platform_group = pygame.sprite.Group()  # Grupo de plataformas
 
 # Cria a primeira plataforma
-platform = Platform(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT - 140, 100, False)  # Cria uma plataforma inicial
+platform = Platform(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT - 50, 100, False)  # Cria uma plataforma inicial
 platform_group.add(platform)  # Adiciona a plataforma ao grupo de plataformas
 
 # Loop principal do jogo
-while True:
-
+while True:  
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            if score > high_score: # Atualiza a pontuação mais alta
+                high_score = score
+            pygame.quit()
+            sys.exit()
+            
     CLOCK.tick(FPS)  # Limita a taxa de quadros por segundo.
     
     # Verifica se o jogo ainda não acabou.
     if game_over == False:
         # Chama a função para mover o personagem e obtém o valor de deslocamento vertical.
         scroll = jef.move()
-        # Permite a rolagem da tela, primeiro pulo
-        key = pygame.key.get_pressed()
-        if key[pygame.K_SPACE]:
-            screen_movement = True
-
-        if screen_movement:
-            for platform in platform_group:
-                platform.rect.y += SCROLL_SPEED  # Move as plataformas para cima com a velocidade de rolagem
-            bg_scroll += SCROLL_SPEED # Move o plano de fundo para cima
 
         # Desenha o fundo do jogo
         bg_scroll += scroll
@@ -193,17 +186,12 @@ while True:
             bg_scroll = 0
         draw_bg(bg_scroll) # Atualiza o deslocamento do fundo e desenha o fundo.
         
-        #Desenha a onda 
-        wave_rect = wave_image.get_rect()
-        wave_rect.bottom = SCREEN_HEIGHT 
-        screen.blit(wave_image, wave_rect)
-
         # Gera plataformas, verificando se o número de plataformas no grupo é menor que o máximo permitido.
         if len(platform_group) < MAX_PLATFORMS:
             
             p_w = random.randint(40, 60)
             p_x = random.randint(0, SCREEN_WIDTH - p_w)
-            p_y = platform.rect.y - random.randint(80, 110)
+            p_y = platform.rect.y - random.randint(80, 120)
             p_type = random.randint(1, 2)
             if p_type == 1 and score > 500:
                 p_moving = True
@@ -230,9 +218,7 @@ while True:
         # Verifica se o personagem saiu da tela no topo e, nesse caso, encerra o jogo.
         if jef.rect.top > SCREEN_HEIGHT:
             game_over = True 
-        # Verifica se o personagem encostou na onda e, nesse caso, encerra o jogo.    
-        if jef.rect.colliderect(wave_rect):
-            game_over = True
+
     else:
         
         if fade_counter < SCREEN_WIDTH:
@@ -241,10 +227,10 @@ while True:
                 pygame.draw.rect(screen, BLACK, (0, y * 100, fade_counter, 100))
                 pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH - fade_counter, (y + 1) * 100, SCREEN_WIDTH, 100))
         else:
+            # Se o jogo acabou, mostra a tela de "GAME OVER" e a pontuação.
             draw_text('GAME OVER!', font_big, WHITE, 130, 200)
             draw_text('SCORE: ' + str(score), font_big, WHITE, 130, 250)
             draw_text('PRESS SPACE TO PLAY AGAIN', font_big, WHITE, 40, 300)
-            # Se o jogo acabou, mostra a tela de "GAME OVER" e a pontuação.
             
             # Atualiza a pontuação mais alta
             if score > high_score:
@@ -259,23 +245,9 @@ while True:
                 fade_counter = 0
                 jef.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 150) # Reposiciona o personagem
                 platform_group.empty() # Redefine as plataformas 
-                bg_scroll = 0
-                draw_bg(bg_scroll) # Desenha a tela novamente
                 # Cria a plataforma inicial
-                platform = Platform(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT - 140, 100, False)
-                platform_group.add(platform)
-
-    # Manipulador de eventos
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            # Atualiza a pontuação mais alta
-            if score > high_score:
-                high_score = score
-            pygame.quit()
-            sys.exit()
+                platform = Platform(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT - 50, 100, False)
+                platform_group.add(platform)  
             
     # Atualiza a janela de exibição
     pygame.display.update()
-
-# Finaliza o jogo e encerra o módulo Pygame
-pygame.quit()
