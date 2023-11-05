@@ -29,8 +29,8 @@ high_score = 0 # Pontuação maxima
 # Define cores
 WHITE, BLACK, PANEL = (255, 255, 255), (0,0,0), (153, 217, 234)
 
-font_small = pygame.font.SysFont('Lucida Sans', 20) 
-font_big = pygame.font.SysFont('Lucida Sans', 24) 
+font_small = pygame.font.SysFont('Consolas', 20) 
+font_big = pygame.font.SysFont('Consolas', 24) 
 
 # Carrega imagens
 sprite_parado = pygame.image.load("assets/mario_standing.png") 
