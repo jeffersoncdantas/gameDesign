@@ -1,11 +1,13 @@
+import os
 import pygame, random, sys
 from plataforma import Plataforma
 from player import Player
+from onda import Onda
 
 pygame.init()
 
 CLOCK = pygame.time.Clock()
-FPS = 60 
+FPS = 60
 
 # Define as dimensões da janela do jogo
 SCREEN_WIDTH, SCREEN_HEIGHT = 400, 600  
@@ -33,12 +35,15 @@ font_small = pygame.font.SysFont('Consolas', 20)
 font_big = pygame.font.SysFont('Consolas', 24) 
 
 # Carrega imagens
-sprite_parado = pygame.image.load("assets/mario_standing.png") 
-sprite_pulando = pygame.image.load("assets/mario_jumping.png") 
+#sprite_parado = pygame.image.load("assets/mario_standing.png") 
+#sprite_pulando = pygame.image.load("assets/mario_jumping.png") 
 bg_image1 = pygame.image.load('assets/bg1.png')
 bg_image = pygame.image.load('assets/bg.png')
 platform_image = pygame.image.load('assets/plataforma.png')
-wave_image = pygame.image.load("assets/onda.png")
+wave_image = pygame.image.load("assets/ondaBG.png")
+
+jef_spritesheet_img = pygame.image.load("assets/spriteCorrendo.png").convert_alpha()
+sprite_onda_img = pygame.image.load("assets/ondaSprite.png").convert_alpha()
 
 # Função para desenhar texto na tela
 def draw_text(text, font, text_col, x, y):
@@ -62,10 +67,14 @@ def draw_bg(bg_scroll):
         screen.blit(bg_image, (0, -600 + bg_scroll))  # Desenha o plano de fundo acima do primeiro com deslocamento
 
 # Instância do jogador
-jef = Player(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 200, sprite_parado) 
+onda_alt = 200
+jef = Player(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 200, jef_spritesheet_img)
+onda = Onda(0, 200 , sprite_onda_img)
 
 # Cria grupos de sprites para plataformas
 platform_group = pygame.sprite.Group() 
+jef_group =  pygame.sprite.Group(jef)
+onda_group = pygame.sprite.Group(onda)
 
 # Cria a primeira plataforma
 platform = Plataforma(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT - 140, 100, False, platform_image)  # Cria uma plataforma inicial
@@ -97,9 +106,13 @@ while True:
         draw_bg(bg_scroll) # Atualiza o deslocamento do fundo e desenha o fundo.
         
         #Desenha a onda 
-        wave_rect = wave_image.get_rect()
+        wave_rect = wave_image.get_rect() 
         wave_rect.bottom = SCREEN_HEIGHT 
         screen.blit(wave_image, wave_rect)
+
+        #Sprite da onda
+        onda_group.update()
+        onda_group.draw(screen)
 
         # Gera plataformas, verificando se o número de plataformas no grupo é menor que o máximo permitido.
         if len(platform_group) < MAX_PLATFORMS:
@@ -124,7 +137,8 @@ while True:
         
         # Desenha os sprites
         platform_group.draw(screen)
-        jef.draw(screen)
+        jef_group.draw(screen)
+        jef_group.update()
 
         # Desenha o painel de informações
         draw_panel()

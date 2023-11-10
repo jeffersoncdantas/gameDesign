@@ -2,16 +2,37 @@ import pygame
 
 
 # Classe do jogador
-class Player():
-    def __init__(self, x, y, sprite_parado):
-        self.image = pygame.transform.scale(sprite_parado, (30, 40))  # Redimensiona a imagem do personagem
-        self.width = 25  # Largura do retângulo do jogador
-        self.height = 34  # Altura do retângulo do jogador
+class Player(pygame.sprite.Sprite):
+    def __init__(self, x, y, sprite_sheet):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.imagens_jef = []
+        for i in range (4):
+            img = sprite_sheet.subsurface((i * 126, 0, 126, 126))
+            img = pygame.transform.scale(img, (126 / 2, 126/ 2))
+            self.imagens_jef.append(img)
+
+        self.index_lista = 0
+        self.image = self.imagens_jef[self.index_lista]
+        self.rect = self.image.get_rect()
+
+        self.width = 56  # Largura do retângulo do jogador
+        self.height = 56  # Altura do retângulo do jogador
         self.rect = pygame.Rect(0, 0, self.width, self.height)  # Cria um retângulo para o jogador
         self.rect.center = (x, y)  # Define a posição inicial do jogador no centro da tela
         self.vel_y = 0  # Velocidade vertical
         self.jumping = False #Add 28/10
-        self.flip = False  # Indica se o jogador está virado para a esquerda
+        self.flipped = False  # Indica se o jogador está virado para a esquerda
+
+    def flip_spritesheet(self):
+        for i in range(len(self.imagens_jef)):
+            self.imagens_jef[i] = pygame.transform.flip(self.imagens_jef[i], True, False)
+
+    def update(self):
+        if self.index_lista > 2:
+            self.index_lista = 0
+        self.index_lista += 0.1
+        self.image = self.imagens_jef[int(self.index_lista)]
 
     def move(self, SCREEN_WIDTH, GRAVITY, platform_group, SCROLL_THRESH):
         scroll = 0  # Deslocamento vertical da tela
@@ -30,11 +51,12 @@ class Player():
                 
         if key[pygame.K_d]:  # Tecla "D" pressionada
             dx += 5  # Movimento para a direita
-            self.flip = False  # Define que o jogador não está virado para a esquerda
-        
+            self.flipped = True
+
         if key[pygame.K_a]:  # Tecla "A" pressionada
             dx = -5  # Movimento para a esquerda
-            self.flip = True  # Define que o jogador está virado para a esquerda
+            self.image = pygame.transform.flip(self.image, True, False)  # Inverte a imagem horizontalmente
+            self.flipped = True
 
         if self.rect.left + dx < 0:  # Verifica se o jogador não está fora da tela à esquerda
             dx = -self.rect.left
@@ -65,4 +87,4 @@ class Player():
         return scroll  # Retorna o deslocamento vertical da tela
 
     def draw(self, screen):
-        screen.blit(pygame.transform.flip(self.image, self.flip, False), (self.rect.x - 12, self.rect.y - 5))  # Desenha o jogador na tela
+        screen.blit(pygame.transform.flip(self.image, self.flip, True), (self.rect.x - 12, self.rect.y - 5))  # Desenha o jogador na tela
