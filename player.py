@@ -36,7 +36,7 @@ class Player(pygame.sprite.Sprite):
         self.image = self.imagens_jef[int(self.index_lista)]
         self.image = pygame.transform.flip(self.image, self.flip, False)
         
-    def move(self, SCREEN_WIDTH, GRAVITY, platform_group, SCROLL_THRESH):
+    def move(self, SCREEN_WIDTH, GRAVITY, platform_group, SCROLL_THRESH, som):
         scroll = 0  # Deslocamento vertical da tela
         dx = 0  # Deslocamento horizontal
         dy = 0  # Deslocamento vertical
@@ -47,7 +47,8 @@ class Player(pygame.sprite.Sprite):
             self.vel_y = -20
             self.doubleJumping -= 1
             self.jumping = True
-            self.sound_jump.play()
+            if som:
+                self.sound_jump.play()
               
         if not key[pygame.K_SPACE]:
             if self.vel_y == 10:

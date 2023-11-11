@@ -13,7 +13,7 @@ class Plataforma(pygame.sprite.Sprite):
         self.rect.x = x  # Define a posição horizontal
         self.rect.y = y  # Define a posição vertical
 
-    def update(self, scroll, SCREEN_WIDTH, SCREEN_HEIGHT):
+    def update(self, scroll, SCREEN_WIDTH, SCREEN_HEIGHT, wave, og1, og2, og3, og4):
         if self.moving == True:  # Verifica se a plataforma está se movendo
             self.move_counter += 1  # Incrementa o contador de movimento
             self.rect.x += self.direction * self.speed  # Move a plataforma na direção especificada
@@ -26,3 +26,14 @@ class Plataforma(pygame.sprite.Sprite):
 
         if self.rect.top > SCREEN_HEIGHT:  # Verifica se a plataforma saiu da tela
             self.kill()  # Remove a plataforma do grupo
+        
+        if self.rect.colliderect(wave):
+            self.kill()
+            
+        # for og in og1:
+        #     if self.rect.colliderect(og):
+        #         self.kill()
+                
+        for og in og4:
+            if self.rect.colliderect(og):
+                self.kill()

@@ -7,15 +7,15 @@ class Onda(pygame.sprite.Sprite):
         self.sprite_onda = []
         for i in range (14):
             img = onda_spritesheet.subsurface((i * 400, 0, 400, 600))
-            img = pygame.transform.scale(img, (400 / 2, 600/ 2))
+            img = pygame.transform.scale(img, (150 / 2, 300/ 2))
             self.sprite_onda.append(img)
 
         self.index_lista = 0
         self.image = self.sprite_onda[self.index_lista]
         self.rect = self.image.get_rect()
 
-        self.width = 400  # Largura do retângulo do jogador
-        self.height = 600  # Altura do retângulo do jogador
+        self.width = 300  # Largura do retângulo do jogador
+        self.height = 400  # Altura do retângulo do jogador
         self.rect = pygame.Rect(x, y, self.width, self.height)  # Cria um retângulo para o jogador
 
         self.jumping = False #Add 28/10
