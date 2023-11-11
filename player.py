@@ -1,6 +1,5 @@
 import pygame
 
-
 # Classe do jogador
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, sprite_sheet):
@@ -15,25 +14,28 @@ class Player(pygame.sprite.Sprite):
         self.index_lista = 0
         self.image = self.imagens_jef[self.index_lista]
         self.rect = self.image.get_rect()
-
         self.width = 56  # Largura do retângulo do jogador
-        self.height = 56  # Altura do retângulo do jogador
+        self.height = 60  # Altura do retângulo do jogador
         self.rect = pygame.Rect(0, 0, self.width, self.height)  # Cria um retângulo para o jogador
         self.rect.center = (x, y)  # Define a posição inicial do jogador no centro da tela
         self.vel_y = 0  # Velocidade vertical
         self.jumping = False #Add 28/10
-        self.flipped = False  # Indica se o jogador está virado para a esquerda
+        self.flip = False  # Indica se o jogador está virado para a esquerda
+        self.doubleJumping = 2
+        self.sound_jump = pygame.mixer.Sound("assets/sfx-pop.mp3")
+        self.sound_jump.set_volume(0.5)
 
-    def flip_spritesheet(self):
-        for i in range(len(self.imagens_jef)):
-            self.imagens_jef[i] = pygame.transform.flip(self.imagens_jef[i], True, False)
+    # def flip_spritesheet(self):
+    #     for i in range(len(self.imagens_jef)):
+    #         self.imagens_jef[i] = pygame.transform.flip(self.imagens_jef[i], True, False)
 
     def update(self):
         if self.index_lista > 2:
             self.index_lista = 0
         self.index_lista += 0.1
         self.image = self.imagens_jef[int(self.index_lista)]
-
+        self.image = pygame.transform.flip(self.image, self.flip, False)
+        
     def move(self, SCREEN_WIDTH, GRAVITY, platform_group, SCROLL_THRESH):
         scroll = 0  # Deslocamento vertical da tela
         dx = 0  # Deslocamento horizontal
@@ -41,23 +43,34 @@ class Player(pygame.sprite.Sprite):
 
         key = pygame.key.get_pressed()  # Obtém o estado das teclas pressionadas
         
-        if key[pygame.K_SPACE] and self.jumping == False:
+        if key[pygame.K_SPACE] and not self.jumping and self.doubleJumping > 0:
             self.vel_y = -20
+            self.doubleJumping -= 1
             self.jumping = True
-            
-        if key[pygame.K_SPACE] == False:
+            self.sound_jump.play()
+              
+        if not key[pygame.K_SPACE]:
             if self.vel_y == 10:
               self.jumping = False
-                
-        if key[pygame.K_d]:  # Tecla "D" pressionada
-            dx += 5  # Movimento para a direita
-            self.flipped = True
+                  
+        # if key[pygame.K_d]:  # Tecla "D" pressionada
+        #     dx = 5  # Movimento para a direita
+        #     self.flipped = False
 
+        # if key[pygame.K_a]:  # Tecla "A" pressionada
+        #     dx = -5  # Movimento para a esquerda
+        #     self.image = pygame.transform.flip(self.image, True, False)  # Inverte a imagem horizontalmente
+        #     self.flipped = True
+        
+        key = pygame.key.get_pressed()  # Obtém o estado das teclas pressionadas
         if key[pygame.K_a]:  # Tecla "A" pressionada
             dx = -5  # Movimento para a esquerda
-            self.image = pygame.transform.flip(self.image, True, False)  # Inverte a imagem horizontalmente
-            self.flipped = True
-
+            self.flip = True  # Define que o jogador está virado para a esquerda
+            
+        if key[pygame.K_d]:  # Tecla "D" pressionada
+            dx = 5  # Movimento para a direita
+            self.flip = False  # Define que o jogador não está virado para a esquerda
+   
         if self.rect.left + dx < 0:  # Verifica se o jogador não está fora da tela à esquerda
             dx = -self.rect.left
         if self.rect.right + dx > SCREEN_WIDTH:  # Verifica se o jogador não está fora da tela à direita
@@ -74,6 +87,9 @@ class Player(pygame.sprite.Sprite):
                     if self.vel_y > 0:  # Verifica se o jogador está descendo
                         self.rect.bottom = platform.rect.top  # Coloca o jogador no topo da plataforma
                         dy = 0  # Zera o deslocamento vertical
+                        
+                        self.doubleJumping = 2
+                        
 
         if self.rect.top <= SCROLL_THRESH:  # Verifica se o jogador atingiu o limite superior da tela
             if self.vel_y < 0:  # Verifica se o jogador está subindo
@@ -87,4 +103,4 @@ class Player(pygame.sprite.Sprite):
         return scroll  # Retorna o deslocamento vertical da tela
 
     def draw(self, screen):
-        screen.blit(pygame.transform.flip(self.image, self.flip, True), (self.rect.x - 12, self.rect.y - 5))  # Desenha o jogador na tela
+        screen.blit(pygame.transform.flip(self.image, self.flip, True), (self.rect.x - 10, self.rect.y - 10))  # Desenha o jogador na tela
