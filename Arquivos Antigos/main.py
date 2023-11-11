@@ -3,7 +3,6 @@ import pygame, random, sys
 from plataforma import Plataforma
 from player import Player
 from onda import Onda
-import botao
 
 pygame.init()
 
@@ -28,35 +27,20 @@ game_over = False  # Indica se o jogo acabou
 score = 0  # Pontuação do jogador
 fade_counter = 0  # Contador para efeito de tela de game over
 high_score = 0 # Pontuação maxima
-menu = "start"
-game_paused = False
-seilabicho = True
-som = True
 
 # Define cores
 WHITE, BLACK, PANEL = (255, 255, 255), (0,0,0), (153, 217, 234)
 
 font_small = pygame.font.SysFont('Consolas', 20) 
 font_big = pygame.font.SysFont('Consolas', 24) 
-font_bigbig = pygame.font.SysFont('Consolas', 42) 
 
 # Carrega imagens
+#sprite_parado = pygame.image.load("assets/mario_standing.png") 
+#sprite_pulando = pygame.image.load("assets/mario_jumping.png") 
 bg_image1 = pygame.image.load('assets/bg1.png')
 bg_image = pygame.image.load('assets/bg.png')
-bglv2 = pygame.image.load('assets/bg2.png')
-bglv2 = pygame.transform.scale(bglv2, (400, 600))
-bglv3 = pygame.image.load('assets/bg3.png')
-bglv3 = pygame.transform.scale(bglv3, (400, 600))
-bglv4 = pygame.image.load('assets/bg4.png')
-bglv4 = pygame.transform.scale(bglv4, (400, 600))
 platform_image = pygame.image.load('assets/plataforma.png')
-botaoimg = pygame.image.load('assets/botao.png')
 wave_image = pygame.image.load("assets/ondaBG.png")
-
-botao_start = botao.Button(50, 150, botaoimg, 1)
-botao_instrucao = botao.Button(50, 250, botaoimg, 1)
-botao_som = botao.Button(50, 350, botaoimg, 1)
-botao_ranking = botao.Button(50, 450, botaoimg, 1)
 
 jef_spritesheet_img = pygame.image.load("assets/spriteCorrendo.png").convert_alpha()
 sprite_onda_img = pygame.image.load("assets/ondaSprite.png").convert_alpha()
@@ -81,17 +65,6 @@ def draw_bg(bg_scroll):
     else:
         screen.blit(bg_image, (0, 0 + bg_scroll))  # Desenha o plano de fundo acima do primeiro com deslocamento
         screen.blit(bg_image, (0, -600 + bg_scroll))  # Desenha o plano de fundo acima do primeiro com deslocamento
-        if score > 2500:
-
-            screen.blit(bglv2, (0, 0 + bg_scroll))  # Desenha o plano de fundo na tela com um deslocamento vertical
-            screen.blit(bglv2, (0, -600 + bg_scroll))  # Desenha o plano de fundo acima do primeiro com deslocamento
-
-        if score > 5000:
-            screen.blit(bglv3, (0, 0 + bg_scroll))  # Desenha o plano de fundo na tela com um deslocamento vertical
-            screen.blit(bglv3, (0, -600 + bg_scroll))  # Desenha o plano de fundo acima do primeiro com deslocamento
-        if score > 7500:
-            screen.blit(bglv4, (0, 0 + bg_scroll))  # Desenha o plano de fundo na tela com um deslocamento vertical
-            screen.blit(bglv4, (0, -600 + bg_scroll))  # Desenha o plano de fundo acima do primeiro com deslocamento
 
 # Instância do jogador
 onda_alt = 200
@@ -108,7 +81,6 @@ platform = Plataforma(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT - 140, 100, False, p
 platform_group.add(platform)  # Adiciona a plataforma ao grupo de plataformas
 
 def jogar():
-    
     global jef, jef_group, score
     global SCREEN_WIDTH, SCREEN_HEIGHT, screen, screen_movement
     global GRAVITY, SCROLL_THRESH, SCROLL_SPEED, scroll
@@ -198,58 +170,36 @@ def reiniciar ():
     
 # Loop principal do jogo
 while True:
-    CLOCK.tick(FPS)
-    if seilabicho == True:
-        screen.fill((135,206,250)) 
-        seilabicho = False
+    CLOCK.tick(FPS)  
+    
+    # Verifica se o jogo ainda não acabou.
+    if game_over == False:
+        jogar()
     else:
-        if menu == 'start':
-            draw_text('TSUNAMI JUMPING', font_bigbig, WHITE, 25, 55)
-            if botao_start.draw(screen):
-                menu = "comecou"
-            if botao_instrucao.draw(screen):
-                menu = "instrucoes"
-            if botao_som.draw(screen):
-                if som:
-                    som = False
-                if not som:
-                    som = True
-            if botao_ranking.draw(screen):
-                pygame.quit()
-                sys.exit()
-
-        elif menu == 'instrucoes':
-            retangulo = pygame.draw.rect(screen, (255,255,0), pygame.Rect(30, 30, 60, 60))
-            screen.blit(screen,retangulo)
-        else:           
-        # Verifica se o jogo ainda não acabou.
-            if game_over == False:
-                jogar()
-            else:
+        
+        if fade_counter < SCREEN_WIDTH:
+            fade_counter += 5
+            for y in range(0, 6, 2):
+                pygame.draw.rect(screen, BLACK, (0, y * 100, fade_counter, 100))
+                pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH - fade_counter, (y + 1) * 100, SCREEN_WIDTH, 100))
+        else:
+            draw_text('GAME OVER!', font_big, WHITE, 130, 200)
+            draw_text('SCORE: ' + str(score), font_big, WHITE, 130, 250)
+            draw_text('PRESS SPACE TO PLAY AGAIN', font_big, WHITE, 40, 300)
+            
+            # Atualiza a pontuação mais alta
+            if score > high_score:
+                high_score = score
                 
-                if fade_counter < SCREEN_WIDTH:
-                    fade_counter += 5
-                    for y in range(0, 6, 2):
-                        pygame.draw.rect(screen, BLACK, (0, y * 100, fade_counter, 100))
-                        pygame.draw.rect(screen, BLACK, (SCREEN_WIDTH - fade_counter, (y + 1) * 100, SCREEN_WIDTH, 100))
-                else:
-                    draw_text('GAME OVER!', font_big, WHITE, 130, 200)
-                    draw_text('SCORE: ' + str(score), font_big, WHITE, 130, 250)
-                    draw_text('PRESS SPACE TO PLAY AGAIN', font_big, WHITE, 40, 300)
-                    
-                    # Atualiza a pontuação mais alta
-                    if score > high_score:
-                        high_score = score
-                        
-                    key = pygame.key.get_pressed()
-                    if key[pygame.K_SPACE]:
-                        reiniciar()
+            key = pygame.key.get_pressed()
+            if key[pygame.K_SPACE]:
+                reiniciar()
 
-        # Manipulador de eventos
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-                
-        # Atualiza a janela de exibição
-        pygame.display.update()
+    # Manipulador de eventos
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+            
+    # Atualiza a janela de exibição
+    pygame.display.update()
