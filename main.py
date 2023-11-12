@@ -2,6 +2,7 @@ import pygame, random, sys
 from plataforma import Plataforma
 from player import Player
 from onda import Onda
+from inimigo import Inimigo
 import botao
 
 pygame.init()
@@ -30,6 +31,8 @@ high_score = 0 # Pontuação maxima
 cena = "comeco"
 som = True
 nome_usuario = ""
+ultima_pontuacao = 0
+last_enemy_time = pygame.time.get_ticks()
 
 # Define cores
 WHITE, BLACK, PANEL = (255, 255, 255), (0,0,0), (45,206,244)
@@ -69,6 +72,7 @@ input_rect = pygame.Rect(200, 200, 50, 550)
 
 jef_spritesheet_img = pygame.image.load("assets/spriteCorrendo.png").convert_alpha()
 sprite_onda_img = pygame.image.load("assets/ondaSprite.png").convert_alpha()
+fej_spritesheet_img = pygame.image.load("assets/enemy.png").convert_alpha()
 
 sound_death = pygame.mixer.Sound("assets/sfx-death.mp3")
 sound_death.set_volume(0.5)
@@ -105,9 +109,33 @@ def draw_bg(bg_scroll):
             screen.blit(bglv4, (0, 0 + bg_scroll))  # Desenha o plano de fundo na tela com um deslocamento vertical
             screen.blit(bglv4, (0, -600 + bg_scroll))  # Desenha o plano de fundo acima do primeiro com deslocamento
 
+# Função para gerar inimigo
+def gerar_inimigo(platform_group, jef_group, jef_spritesheet_img, score, ultima_pontuacao):
+    global fej
+    global fej_group
+    global last_enemy_time
+
+    # Verifica se a pontuação atingiu um múltiplo de 500
+    pontuacao_multiplo = 500
+
+    # Verifica se tempo suficiente passou desde a última geração de inimigo
+    if score >= ultima_pontuacao + 500:
+        ultima_pontuacao = (score // 500) * 500
+        plataforma_aleatoria = random.choice(platform_group.sprites())
+        inimigo_x = plataforma_aleatoria.rect.x + plataforma_aleatoria.rect.width // 2 
+        inimigo_y = plataforma_aleatoria.rect.y - 56
+        fej = Inimigo(inimigo_x, inimigo_y, 56, 56, fej_spritesheet_img)
+        fej.plataforma_associada = plataforma_aleatoria
+
+        fej_group.add(fej)
+        ultima_pontuacao = score
+
+    return ultima_pontuacao
+
 # Instância do jogador
 onda_alt = 200
 jef = Player(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 200, jef_spritesheet_img)
+
 onda = Onda(0, 450 , sprite_onda_img)
 onda2 = Onda(100, 450 , sprite_onda_img)
 onda3 = Onda(200, 450 , sprite_onda_img)
@@ -116,6 +144,8 @@ onda4 = Onda(300, 450 , sprite_onda_img)
 # Cria grupos de sprites para plataformas
 platform_group = pygame.sprite.Group() 
 jef_group =  pygame.sprite.Group(jef)
+fej_group = pygame.sprite.Group()
+
 onda_group = pygame.sprite.Group(onda)
 onda_group2 = pygame.sprite.Group(onda2)
 onda_group3 = pygame.sprite.Group(onda3)
@@ -127,7 +157,7 @@ platform_group.add(platform)  # Adiciona a plataforma ao grupo de plataformas
 
 def jogar():
     
-    global jef, jef_group, score
+    global jef, jef_group, score, fej_group
     global SCREEN_WIDTH, SCREEN_HEIGHT, screen, screen_movement
     global GRAVITY, SCROLL_THRESH, SCROLL_SPEED, scroll
     global platform_group, platform, platform_image, MAX_PLATFORMS
@@ -135,6 +165,8 @@ def jogar():
     global bg_scroll, draw_bg
     global wave_rect, wave_image, onda_group
     global draw_panel, game_over
+
+    global ultima_pontuacao
     
     # Chama a função para mover o personagem e obtém o valor de deslocamento vertical.
     scroll = jef.move(SCREEN_WIDTH, GRAVITY, platform_group, SCROLL_THRESH, som)
@@ -185,13 +217,16 @@ def jogar():
             p_moving = False
         platform = Plataforma(p_x, p_y, p_w, p_moving, platform_image)
         # Gera uma nova plataforma com propriedades aleatórias e adiciona ao grupo de plataformas.
-        platform_group.add(platform) 
-        
+        ultima_pontuacao = gerar_inimigo(platform_group, fej_group, fej_spritesheet_img, score, ultima_pontuacao)
+        fej_group = pygame.sprite.Group([fej for fej in fej_group if fej.plataforma_associada in platform_group])
+        platform_group.add(platform)
+
+    fej_group.draw(screen)
+    fej_group.update(SCREEN_WIDTH, SCREEN_HEIGHT)
     
     # Atualiza as posições das plataformas de acordo com o deslocamento vertical.
     platform_group.update(scroll, SCREEN_WIDTH, SCREEN_HEIGHT, wave_rect, onda_group, onda_group2, onda_group3, onda_group4)
-
-    # Incrementa a pontuação com base no deslocamento vertical.
+    
     if scroll > 0:
         score += scroll
 
@@ -213,9 +248,17 @@ def jogar():
         if som:
             sound_death.play()
         game_over = True
+
+    for fej in fej_group:
+        if jef.rect.colliderect(fej.rect):
+            if jef.rect.left < fej.rect.right and jef.rect.right > fej.rect.left:
+                jef.rect.y = 500
+                jef.vel_y = 0
+
         
 def reiniciar ():
     global game_over, score, scroll, fade_counter, jef, platform_group, bg_scroll, draw_bg, platform, screen_movement
+   
     game_over = False
     score = 0
     scroll = 0
@@ -225,10 +268,11 @@ def reiniciar ():
     bg_scroll = 0
     draw_bg(bg_scroll) # Desenha a tela novamente
     screen_movement = False
+
     # Cria a plataforma inicial
     platform = Plataforma(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT - 140, 100, False, platform_image)
     platform_group.add(platform)
-    
+
 def instrucoes():
     global screen, botao_voltar, cena, draw_text, font_big, font_small, font_wave, WHITE
     screen.fill((4, 89, 170))
