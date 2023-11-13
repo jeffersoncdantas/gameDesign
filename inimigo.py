@@ -18,7 +18,7 @@ class Inimigo(pygame.sprite.Sprite):
 		numero_frames = 4
 		for animation in range(numero_frames):
 			image = sprite_sheet.get_image(animation, 120, 100, scale, (0, 0, 0))
-			image = pygame.transform.scale(image, (120 / 1.1, 100/ 1.1))
+			image = pygame.transform.scale(image, (120 / 1.5, 100/ 1.5))
 			image = pygame.transform.flip(image, self.flip, False)
 			image.set_colorkey((0, 0, 0))
 			self.imagens_fej.append(image)
@@ -35,7 +35,7 @@ class Inimigo(pygame.sprite.Sprite):
 
 	def update(self, scroll, SCREEN_WIDTH):
 		#Atualiza animação
-		animation_cooldown = 30000
+		animation_cooldown = 90000
 		self.image = self.imagens_fej[self.frame_index]
 		#Verifica quanto tempo passou desde a ultima atualização
 		if pygame.time.get_ticks() - self.update_time > animation_cooldown:

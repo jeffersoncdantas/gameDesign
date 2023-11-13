@@ -34,6 +34,7 @@ cena = "comeco"
 som = True
 nome_usuario = ""
 ultima_pontuacao = 0
+nivel = 1
 
 # Define cores
 WHITE, BLACK, PANEL = (255, 255, 255), (0,0,0), (45,206,244)
@@ -94,13 +95,16 @@ def draw_text(text, font, text_col, x, y):
 
 # Função para desenhar o painel de informações
 def draw_panel():
+    global nivel
     pygame.draw.rect(screen, PANEL, (0, 0, SCREEN_WIDTH, 30))  # Desenha um retângulo colorido como painel na parte superior da tela
     pygame.draw.line(screen, WHITE, (0, 30), (SCREEN_WIDTH, 30), 2)  # Desenha uma linha branca abaixo do painel
     draw_text('SCORE: ' + str(score), font_small, WHITE, 5, 3)  # Desenha a pontuação atual no painel
     draw_text('HIGH SCORE: ' + str(high_score), font_small, WHITE, 200, 3)
+    draw_text('NIVEL: ' + str(nivel), font_small, WHITE, 100, 3)
     
 # Função para desenhar o plano de fundo
 def draw_bg(bg_scroll):
+    global nivel
     if score < 400:
         screen.blit(bg_image1, (0, 0 + bg_scroll))  # Desenha o plano de fundo na tela com um deslocamento vertical
         screen.blit(bg_image, (0, -600 + bg_scroll))  # Desenha o plano de fundo acima do primeiro com deslocamento
@@ -108,14 +112,16 @@ def draw_bg(bg_scroll):
         screen.blit(bg_image, (0, 0 + bg_scroll))  # Desenha o plano de fundo acima do primeiro com deslocamento
         screen.blit(bg_image, (0, -600 + bg_scroll))  # Desenha o plano de fundo acima do primeiro com deslocamento
         if score > 2500:
-
+            nivel = 2
             screen.blit(bglv2, (0, 0 + bg_scroll))  # Desenha o plano de fundo na tela com um deslocamento vertical
             screen.blit(bglv2, (0, -600 + bg_scroll))  # Desenha o plano de fundo acima do primeiro com deslocamento
 
         if score > 5000:
+            nivel = 3
             screen.blit(bglv3, (0, 0 + bg_scroll))  # Desenha o plano de fundo na tela com um deslocamento vertical
             screen.blit(bglv3, (0, -600 + bg_scroll))  # Desenha o plano de fundo acima do primeiro com deslocamento
         if score > 7500:
+            nivel = 4
             screen.blit(bglv4, (0, 0 + bg_scroll))  # Desenha o plano de fundo na tela com um deslocamento vertical
             screen.blit(bglv4, (0, -600 + bg_scroll))  # Desenha o plano de fundo acima do primeiro com deslocamento
 
@@ -213,8 +219,8 @@ def jogar():
     # Atualiza as posições das plataformas de acordo com o deslocamento vertical.
     platform_group.update(scroll, SCREEN_WIDTH, SCREEN_HEIGHT, wave_rect, onda_group, onda_group2, onda_group3, onda_group4)
     
-    if len(fej_group) == 0 and score >1500:
-        fej = Inimigo(SCREEN_WIDTH, 100, fej_image, 3)
+    if len(fej_group) == 0 and score >2500:
+        fej = Inimigo(SCREEN_WIDTH, 100, fej_image, 1.5)
         fej_group.add(fej)
 	#Atualiza inimigos
     fej_group.update(scroll, SCREEN_WIDTH)
@@ -251,8 +257,8 @@ def jogar():
 
         
 def reiniciar ():
-    global game_over, score, scroll, fade_counter, jef, platform_group, bg_scroll, draw_bg, platform, screen_movement
-   
+    global game_over, score, scroll, fade_counter, jef, platform_group, bg_scroll, draw_bg, platform, screen_movement, nivel
+    nivel = 1
     game_over = False
     score = 0
     scroll = 0
