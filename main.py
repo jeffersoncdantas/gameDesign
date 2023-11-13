@@ -78,7 +78,11 @@ fej_spritesheet_img = pygame.image.load('assets/inimigo.png').convert_alpha()
 fej_image = SpriteSheet(fej_spritesheet_img)
 
 sound_death = pygame.mixer.Sound("assets/sfx-death.mp3")
-sound_death.set_volume(0.5)
+sound_death.set_volume(0.9)
+
+sound_player = pygame.mixer.Sound("assets/sfx-music.mp3")
+sound_player.set_volume(0.3)
+
 
 # Função para desenhar texto na tela
 def draw_text(text, font, text_col, x, y):
@@ -146,9 +150,12 @@ def jogar():
     global bg_scroll, draw_bg
     global wave_rect, wave_image, onda_group
     global draw_panel, game_over
+    global som, sound_player, sound_death
 
     global ultima_pontuacao
     
+    
+        
     # Chama a função para mover o personagem e obtém o valor de deslocamento vertical.
     scroll = jef.move(SCREEN_WIDTH, GRAVITY, platform_group, SCROLL_THRESH, som)
 
@@ -234,8 +241,10 @@ def jogar():
     # Verifica se o personagem encostou no inimigo e, nesse caso, encerra o jogo.   
     if pygame.sprite.spritecollide(jef, fej_group, False):
         if pygame.sprite.spritecollide(jef, fej_group, False, pygame.sprite.collide_mask):
+            if som:
+                sound_death.play()
             game_over = True
-            sound_death.play()
+            
 
         
 def reiniciar ():
@@ -270,6 +279,8 @@ def instrucoes():
     draw_text('a tecla de Espaço no teclado. ', font_big, WHITE, 10, 260)
     draw_text('Caso o Jef colidir com a onda ', font_big, WHITE, 10, 330)
     draw_text('você perde o jogo. ', font_big, WHITE, 10, 360)
+    draw_text('Caso o Jef colidir com o avião ', font_big, WHITE, 10, 430)
+    draw_text('e o Fej, você perde o jogo. ', font_big, WHITE, 10, 460)
     
 def mostrar_ranking():
     global screen, botao_voltar, cena, draw_text, font_big, font_small, font_wave, WHITE, ranking
@@ -378,8 +389,9 @@ while True:
     # Verifica se o jogo ainda não acabou.
         if game_over == False:
             jogar()
+            if som:
+                sound_player.play()
         else:
-            
             if fade_counter < SCREEN_WIDTH:
                 fade_counter += 5
                 for y in range(0, 6, 2):

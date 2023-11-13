@@ -37,3 +37,13 @@ MARINA, 5810
 , 381
 , 1919
 marina, 3924
+Jefferson, 527
+Jefferson, 967
+Jefferson, 1517
+Jefferson, 1517
+Jefferson, 894
+Jefferson, 894
+Jefferson, 894
+Jef, 303
+Jef, 726
+Jef, 131

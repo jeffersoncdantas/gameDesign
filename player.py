@@ -23,7 +23,7 @@ class Player(pygame.sprite.Sprite):
         self.flip = False  # Indica se o jogador está virado para a esquerda
         self.doubleJumping = 2
         self.sound_jump = pygame.mixer.Sound("assets/sfx-pop.mp3")
-        self.sound_jump.set_volume(0.5)
+        self.sound_jump.set_volume(0.10)
 
     # def flip_spritesheet(self):
     #     for i in range(len(self.imagens_jef)):
