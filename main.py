@@ -2,8 +2,10 @@ import pygame, random, sys
 from plataforma import Plataforma
 from player import Player
 from onda import Onda
-from inimigo import Inimigo
 import botao
+from inimigo import Inimigo
+from spritesheet import SpriteSheet
+
 
 pygame.init()
 
@@ -32,7 +34,6 @@ cena = "comeco"
 som = True
 nome_usuario = ""
 ultima_pontuacao = 0
-last_enemy_time = pygame.time.get_ticks()
 
 # Define cores
 WHITE, BLACK, PANEL = (255, 255, 255), (0,0,0), (45,206,244)
@@ -72,7 +73,9 @@ input_rect = pygame.Rect(200, 200, 50, 550)
 
 jef_spritesheet_img = pygame.image.load("assets/spriteCorrendo.png").convert_alpha()
 sprite_onda_img = pygame.image.load("assets/ondaSprite.png").convert_alpha()
-fej_spritesheet_img = pygame.image.load("assets/enemy.png").convert_alpha()
+
+fej_spritesheet_img = pygame.image.load('assets/inimigo.png').convert_alpha()
+fej_image = SpriteSheet(fej_spritesheet_img)
 
 sound_death = pygame.mixer.Sound("assets/sfx-death.mp3")
 sound_death.set_volume(0.5)
@@ -109,29 +112,6 @@ def draw_bg(bg_scroll):
             screen.blit(bglv4, (0, 0 + bg_scroll))  # Desenha o plano de fundo na tela com um deslocamento vertical
             screen.blit(bglv4, (0, -600 + bg_scroll))  # Desenha o plano de fundo acima do primeiro com deslocamento
 
-# Função para gerar inimigo
-def gerar_inimigo(platform_group, jef_group, jef_spritesheet_img, score, ultima_pontuacao):
-    global fej
-    global fej_group
-    global last_enemy_time
-
-    # Verifica se a pontuação atingiu um múltiplo de 500
-    pontuacao_multiplo = 500
-
-    # Verifica se tempo suficiente passou desde a última geração de inimigo
-    if score >= ultima_pontuacao + 500:
-        ultima_pontuacao = (score // 500) * 500
-        plataforma_aleatoria = random.choice(platform_group.sprites())
-        inimigo_x = plataforma_aleatoria.rect.x + plataforma_aleatoria.rect.width // 2 
-        inimigo_y = plataforma_aleatoria.rect.y - 56
-        fej = Inimigo(inimigo_x, inimigo_y, 56, 56, fej_spritesheet_img)
-        fej.plataforma_associada = plataforma_aleatoria
-
-        fej_group.add(fej)
-        ultima_pontuacao = score
-
-    return ultima_pontuacao
-
 # Instância do jogador
 onda_alt = 200
 jef = Player(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 200, jef_spritesheet_img)
@@ -145,6 +125,7 @@ onda4 = Onda(300, 450 , sprite_onda_img)
 platform_group = pygame.sprite.Group() 
 jef_group =  pygame.sprite.Group(jef)
 fej_group = pygame.sprite.Group()
+
 
 onda_group = pygame.sprite.Group(onda)
 onda_group2 = pygame.sprite.Group(onda2)
@@ -217,16 +198,17 @@ def jogar():
             p_moving = False
         platform = Plataforma(p_x, p_y, p_w, p_moving, platform_image)
         # Gera uma nova plataforma com propriedades aleatórias e adiciona ao grupo de plataformas.
-        ultima_pontuacao = gerar_inimigo(platform_group, fej_group, fej_spritesheet_img, score, ultima_pontuacao)
-        fej_group = pygame.sprite.Group([fej for fej in fej_group if fej.plataforma_associada in platform_group])
         platform_group.add(platform)
-
-    fej_group.draw(screen)
-    fej_group.update(SCREEN_WIDTH, SCREEN_HEIGHT)
     
     # Atualiza as posições das plataformas de acordo com o deslocamento vertical.
     platform_group.update(scroll, SCREEN_WIDTH, SCREEN_HEIGHT, wave_rect, onda_group, onda_group2, onda_group3, onda_group4)
     
+    if len(fej_group) == 0 and score >1500:
+        fej = Inimigo(SCREEN_WIDTH, 100, fej_image, 3)
+        fej_group.add(fej)
+	#Atualiza inimigos
+    fej_group.update(scroll, SCREEN_WIDTH)
+
     if scroll > 0:
         score += scroll
 
@@ -234,6 +216,7 @@ def jogar():
     platform_group.draw(screen)
     jef_group.draw(screen)
     jef_group.update()
+    fej_group.draw(screen)
 
     # Desenha o painel de informações
     draw_panel()
@@ -248,12 +231,11 @@ def jogar():
         if som:
             sound_death.play()
         game_over = True
-
-    for fej in fej_group:
-        if jef.rect.colliderect(fej.rect):
-            if jef.rect.left < fej.rect.right and jef.rect.right > fej.rect.left:
-                jef.rect.y = 500
-                jef.vel_y = 0
+    # Verifica se o personagem encostou no inimigo e, nesse caso, encerra o jogo.   
+    if pygame.sprite.spritecollide(jef, fej_group, False):
+        if pygame.sprite.spritecollide(jef, fej_group, False, pygame.sprite.collide_mask):
+            game_over = True
+            sound_death.play()
 
         
 def reiniciar ():
@@ -265,9 +247,11 @@ def reiniciar ():
     fade_counter = 0
     jef.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 200) # Reposiciona o personagem
     platform_group.empty() # Redefine as plataformas 
+    fej_group.empty() #Redefine o inimigo
     bg_scroll = 0
     draw_bg(bg_scroll) # Desenha a tela novamente
     screen_movement = False
+
 
     # Cria a plataforma inicial
     platform = Plataforma(SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT - 140, 100, False, platform_image)

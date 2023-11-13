@@ -1,50 +1,54 @@
 import pygame
+import random
 
 class Inimigo(pygame.sprite.Sprite):
-    def __init__(self, x, y, width, height, sprite_sheet):
-        pygame.sprite.Sprite.__init__(self)
+	def __init__(self, SCREEN_WIDTH, y, sprite_sheet, scale):
+		pygame.sprite.Sprite.__init__(self)
+		
+		self.imagens_fej = []
+		self.frame_index = 0
+		self.update_time = pygame.time.get_ticks()
+		self.direction = random.choice([-1, 1])
+		if self.direction == 1: #Define a direção da animação
+			self.flip = False
+		else:
+			self.flip = True
 
-        self.imagens_fej = []
-        for i in range(5):
-            img = sprite_sheet.subsurface((i * 126, 0, 126, 126))
-            img = pygame.transform.scale(img, (126 // 2, 126 // 2))
-            self.imagens_fej.append(img)
+		#Carregar as imagens do spritesheet
+		numero_frames = 4
+		for animation in range(numero_frames):
+			image = sprite_sheet.get_image(animation, 120, 100, scale, (0, 0, 0))
+			image = pygame.transform.scale(image, (120 / 1.1, 100/ 1.1))
+			image = pygame.transform.flip(image, self.flip, False)
+			image.set_colorkey((0, 0, 0))
+			self.imagens_fej.append(image)
+		
+		#Setando imagem inicial e o retangulo do inimigo
+		self.image = self.imagens_fej[self.frame_index]
+		self.rect = self.image.get_rect()
 
-        self.index_lista = 0
-        self.image = self.imagens_fej[self.index_lista]
-        self.width = 30  # Largura do retângulo do jogador
-        self.height = 56  # Largura do retângulo do jogador
-        self.rect = pygame.Rect(0, 0, self.width, self.height)
-        self.vel_y = 0
-        inimigo_timer = 0
-        INIMIGO_INTERVALO = 150
-        self.plataforma_associada = None
+		if self.direction == 1:
+			self.rect.x = 0
+		else:
+			self.rect.x = SCREEN_WIDTH
+		self.rect.y = y
 
-        self.width = 56  # Largura do retângulo do jogador
-        self.height = 56  # Altura do retângulo do jogador
-        self.rect = pygame.Rect(0, 0, self.width, self.height)  # Cria um retângulo para o jogador
-        self.rect.center = (x, y)  # Define a posição inicial do jogador no centro da tela
-        self.vel_y = 0  # Velocidade vertical
-        self.jumping = False #Add 28/10
-        self.flipped = False  # Indica se o jogador está virado para a esquerda
+	def update(self, scroll, SCREEN_WIDTH):
+		#Atualiza animação
+		animation_cooldown = 30000
+		self.image = self.imagens_fej[self.frame_index]
+		#Verifica quanto tempo passou desde a ultima atualização
+		if pygame.time.get_ticks() - self.update_time > animation_cooldown:
+			self.update_time = pygame.time.get_ticks()
+			self.frame_index += 1
+		#Reinicia a animação, caso tenha acabado
+		if self.frame_index >= len(self.imagens_fej):
+			self.frame_index = 0
 
-    def flip_spritesheet(self):
-        for i in range(len(self.imagens_fej)):
-            self.imagens_fej[i] = pygame.transform.flip(self.imagens_fej[i], True, False)
+		#Movimento do inimigo
+		self.rect.x += self.direction * 2
+		self.rect.y += scroll
 
-    def update(self, SCREEN_WIDTH, SCREEN_HEIGHT):
-        if self.index_lista > 2:
-            self.index_lista = 0
-        self.index_lista += 0.1
-        self.image = self.imagens_fej[int(self.index_lista)]
-
-        if self.plataforma_associada:
-            # Atualiza a posição vertical do inimigo com base na plataforma associada
-            self.rect.y = self.plataforma_associada.rect.y - self.height
-            
-        if self.rect.bottom < 0:
-            self.kill()
-
-    def draw(self, screen):
-        # Adicione a lógica para inverter a imagem se necessário
-        screen.blit(self.image, (self.rect.x - 12, self.rect.y - 5))
+		#Verifica se o jogador saiu da tela
+		if self.rect.right < 0 or self.rect.left > SCREEN_WIDTH:
+			self.kill()
