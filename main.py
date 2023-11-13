@@ -80,8 +80,11 @@ fej_image = SpriteSheet(fej_spritesheet_img)
 sound_death = pygame.mixer.Sound("assets/sfx-death.mp3")
 sound_death.set_volume(0.9)
 
-sound_player = pygame.mixer.Sound("assets/sfx-music.mp3")
-sound_player.set_volume(0.3)
+
+pygame.mixer.music.load('assets/sfx-music.mp3')  # Carrega a música de fundo do jogo
+pygame.mixer.music.set_volume(0.6)  # Define o volume da música
+pygame.mixer.music.play(-1, 0.0)  # Reproduz a música em loop
+
 
 
 # Função para desenhar texto na tela
@@ -150,7 +153,7 @@ def jogar():
     global bg_scroll, draw_bg
     global wave_rect, wave_image, onda_group
     global draw_panel, game_over
-    global som, sound_player, sound_death
+    global som, sound_death
 
     global ultima_pontuacao
     
@@ -331,6 +334,8 @@ def lerArquivo(arquivo):
 while True:
     CLOCK.tick(FPS)
     
+    
+    
     ranking = lerArquivo("ranking.txt")
     
     if cena == 'comeco':
@@ -371,9 +376,11 @@ while True:
         if botao_instrucao.draw(screen):
             cena = "instrucoes"
         if som and botao_som.draw(screen):
+            pygame.mixer.music.pause()
             som = False
             botao_somDes.draw(screen)
         if not som and botao_somDes.draw(screen):
+            pygame.mixer.music.play(-1, 0.0)
             som = True
         if botao_ranking.draw(screen):
             cena = "ranking"
@@ -389,8 +396,6 @@ while True:
     # Verifica se o jogo ainda não acabou.
         if game_over == False:
             jogar()
-            if som:
-                sound_player.play()
         else:
             if fade_counter < SCREEN_WIDTH:
                 fade_counter += 5
